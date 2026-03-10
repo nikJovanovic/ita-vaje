@@ -115,3 +115,6 @@ cd <service-name>
 bun install
 bun run dev
 ```
+
+### Parts Database
+`https://github.com/buildcores/buildcores-open-db`
