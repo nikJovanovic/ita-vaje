@@ -15,8 +15,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/src ./src
 COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/package.json ./
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
 
 ENV NODE_ENV=production
 EXPOSE 4001
 
-CMD ["bun", "run", "src/index.ts"]
+ENTRYPOINT ["./entrypoint.sh"]
