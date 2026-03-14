@@ -2,9 +2,7 @@ import { Elysia, t } from "elysia";
 import type { ComponentService } from "../application/component-service";
 import { COMPONENT_TYPES } from "../domain/component";
 
-const ComponentTypeEnum = t.Union(
-  COMPONENT_TYPES.map((type) => t.Literal(type)),
-);
+const ComponentTypeEnum = t.UnionEnum(COMPONENT_TYPES);
 
 const ComponentSchema = t.Object({
   id: t.String({ format: "uuid" }),
@@ -115,6 +113,7 @@ export const componentRoutes = (service: ComponentService) =>
           return { error: "Component not found" };
         }
         set.status = 204;
+        return;
       },
       {
         params: t.Object({ id: t.String({ format: "uuid" }) }),

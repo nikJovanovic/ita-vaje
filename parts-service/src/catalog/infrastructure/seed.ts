@@ -1,3 +1,4 @@
+import type { InferInsertModel } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -9,7 +10,7 @@ const connectionString =
 const client = postgres(connectionString, { max: 1 });
 const db = drizzle(client);
 
-const seedData = [
+const seedData: InferInsertModel<typeof components>[] = [
   // CPUs
   {
     name: "AMD Ryzen 7 7800X3D",

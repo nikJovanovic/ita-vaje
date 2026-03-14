@@ -15,6 +15,7 @@ export const logger = new Elysia({ name: "logger" })
   .onError(({ request, error }) => {
     const url = new URL(request.url);
     console.error(
-      `[${new Date().toISOString()}] ERROR ${request.method} ${url.pathname} ${error.message}`,
+      `[${new Date().toISOString()}] ERROR ${request.method} ${url.pathname} ${String(error)}`,
     );
-  });
+  })
+  .as("scoped");
