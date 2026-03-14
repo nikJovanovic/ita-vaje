@@ -22,17 +22,17 @@ ita-vaje/
 
 ## Tech Stack
 
-| Layer              | Technology                              |
-| ------------------ | --------------------------------------- |
-| Backend runtime    | Bun                                     |
-| Backend framework  | ElysiaJS                                |
-| Backend language   | TypeScript (strict)                     |
-| Frontend framework | Next.js 16 (App Router)                 |
-| Frontend styling   | Tailwind CSS v4                         |
-| Frontend language  | TypeScript (strict)                     |
-| Database           | PostgreSQL (Docker), one DB per service |
-| Linting/formatting | Biome 2.x                               |
-| Package manager    | Bun (`bun install`, `bun run`)          |
+| Layer              | Technology                                          |
+| ------------------ | --------------------------------------------------- |
+| Runtimes           | Bun (parts, builds, gateway, frontend), Deno (users)|
+| Backend frameworks | ElysiaJS (parts), Hono (builds), Oak (users)        |
+| API Gateway        | Plain `Bun.serve` — no framework                    |
+| Frontend           | Next.js 16 (App Router), React 19, Tailwind CSS v4  |
+| Language           | TypeScript (strict) everywhere                       |
+| Database           | PostgreSQL (Docker), Drizzle ORM, one DB per service |
+| Inter-service      | gRPC (builds → parts), REST for external access      |
+| Linting/formatting | Biome 2.x                                           |
+| Package manager    | Bun / Deno (per service runtime)                     |
 
 ---
 
@@ -47,15 +47,17 @@ This project follows **Clean Architecture** with **Screaming Architecture** nami
 ├── domain/          # Entities, interfaces, value objects — NO framework imports
 ├── application/     # Use cases — orchestrate domain, no HTTP/DB knowledge
 ├── infrastructure/  # PostgreSQL repository implementations
-└── api/             # ElysiaJS route definitions — thin adapters only
+└── api/             # Route handlers (ElysiaJS / Hono / Oak) — thin adapters only
 ```
 
 ### Key rules
 
-- **Domain is pure**: no ElysiaJS, no `pg`, no external imports in `domain/`
+- **Domain is pure**: no framework imports, no `pg`, no external imports in `domain/`
 - **Dependencies flow inward**: `api` → `application` → `domain` ← `infrastructure`
 - **Folder names reflect business concepts**, not technology (e.g. `catalog/`, `build-management/`, `identity/`)
-- Inter-service communication is plain HTTP (no message brokers for this scope)
+- **gRPC mandatory**: `parts-service` exposes gRPC for inter-service calls; `builds-service` calls it via gRPC client. `.proto` files live in `parts-service/proto/`. External API remains REST.
+- **Prefer native APIs**: use runtime built-ins over external libs (e.g. Bun native JWT/hashing, Deno std library)
+- Inter-service communication: gRPC (builds→parts), REST for external access
 
 ---
 
@@ -136,3 +138,4 @@ cd frontend && bun run dev
 - Do not import framework code into `domain/` layer
 - Do not create shared packages/libs between services — keep them fully independent
 - Do not use the Pages Router in the frontend — App Router only
+- Prefer native/built-in APIs over external libraries (e.g. Bun native JWT/password hashing, not `jose`/`bcrypt`)

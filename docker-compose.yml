@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+
+  parts-service:
+    build: ./parts-service
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/catalog_db
+      PORT: 4001
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
