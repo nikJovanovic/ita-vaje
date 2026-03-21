@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import type {
   Component,
   ComponentType,
@@ -17,6 +17,11 @@ export class DrizzleComponentRepository implements ComponentRepository {
       return this.db.select().from(components).where(eq(components.type, type));
     }
     return this.db.select().from(components);
+  }
+
+  async findByIds(ids: string[]): Promise<Component[]> {
+    if (ids.length === 0) return [];
+    return this.db.select().from(components).where(inArray(components.id, ids));
   }
 
   async findById(id: string): Promise<Component | null> {

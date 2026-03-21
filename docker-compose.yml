@@ -16,11 +16,35 @@ services:
     restart: unless-stopped
     ports:
       - "4001:4001"
+      - "50051:50051"
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/catalog_db
       PORT: 4001
+      GRPC_PORT: 50051
     depends_on:
       - postgres
+
+  builds-service:
+    build: ./builds-service
+    restart: unless-stopped
+    ports:
+      - "4002:4002"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/builds_db
+      PORT: 4002
+      PARTS_GRPC_HOST: parts-service:50051
+      PARTS_PROTO_PATH: /proto/parts.proto
+    volumes:
+      - ./parts-service/proto:/proto:ro
+    depends_on:
+      - postgres
+      - parts-service
+
+  grpcox:
+    image: gusaul/grpcox:latest
+    restart: unless-stopped
+    ports:
+      - "6969:6969"
 
 volumes:
   pgdata:

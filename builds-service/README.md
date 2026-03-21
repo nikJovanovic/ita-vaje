@@ -16,26 +16,26 @@ PC build management microservice — lets users create, retrieve, and delete nam
 
 ```
 src/build-management/
-├── domain/          # Build entity, repository interface
+├── domain/          # Build entity, repository interface, PartsClient interface
 ├── application/     # BuildService — business logic
-├── infrastructure/  # Drizzle schema, PostgreSQL repository, migrations
+├── infrastructure/  # Drizzle schema, PostgreSQL repository, gRPC client, migrations
 └── api/             # Hono route handlers, logger middleware
 ```
 
 ## API Endpoints
 
-Base path: `/api/builds`
-
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/builds` | List all builds (optional `?userId=` filter) |
-| `GET` | `/api/builds/:id` | Get build by ID (includes component details) |
-| `POST` | `/api/builds` | Create a new build |
-| `DELETE` | `/api/builds/:id` | Delete a build |
+| `GET` | `/builds` | List all builds (optional `?userId=` filter) |
+| `GET` | `/builds/:id` | Get build by ID (includes component details via gRPC) |
+| `POST` | `/builds` | Create a new build |
+| `DELETE` | `/builds/:id` | Delete a build |
+| `GET` | `/health` | Health check |
 
-### OpenAPI / Swagger
+### API Documentation
 
-Available at `/swagger` when the service is running.
+- **OpenAPI spec**: `/openapi`
+- **Scalar UI**: `/scalar`
 
 ## Development
 
@@ -49,6 +49,7 @@ bun run dev          # start with --watch
 ```bash
 bun run db:generate  # generate Drizzle migrations
 bun run db:migrate   # apply migrations
+bun run db:seed      # seed sample builds
 ```
 
 ## Testing
@@ -72,6 +73,17 @@ docker compose up builds-service   # from project root
 
 ## Inter-Service Communication
 
-This service calls `parts-service` via **gRPC** to resolve component details when assembling a build.
+This service calls `parts-service` via **gRPC** to resolve component details when fetching a build by ID.
 
-**Status:** Not yet implemented.
+- Proto definition: `parts-service/proto/parts.proto`
+- gRPC host configured via `PARTS_GRPC_HOST` env var (default: `localhost:50051`)
+- Graceful degradation: if parts-service is unavailable, builds are returned with empty components and `totalPrice: 0`
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgres://...localhost:5432/builds_db` | PostgreSQL connection string |
+| `PORT` | `4002` | HTTP server port |
+| `PARTS_GRPC_HOST` | `localhost:50051` | parts-service gRPC address |
+| `PARTS_PROTO_PATH` | `../parts-service/proto/parts.proto` | Path to proto file |

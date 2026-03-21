@@ -17,6 +17,10 @@ export class ComponentService {
     return this.repository.findById(id);
   }
 
+  findByIds(ids: string[]): Promise<Component[]> {
+    return this.repository.findByIds(ids);
+  }
+
   create(input: CreateComponentInput): Promise<Component> {
     return this.repository.create(input);
   }

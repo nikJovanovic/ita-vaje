@@ -19,7 +19,7 @@ A microservices web application where users browse PC components and assemble na
                │                    │                      │
       ┌────────▼───────┐  ┌────────▼───────┐  ┌──────────▼─────┐
       │ parts-service  │  │ builds-service │  │  users-service  │
-      │  (ElysiaJS)    │  │    (Hono)      │  │     (Oak)       │
+      │   (gRPC)       │  │    (Hono)      │  │     (Oak)       │
       └────────┬───────┘  └───┬────┬───────┘  └──────────┬──────┘
                │              │    │                      │
                │    gRPC ◄────┘    │                      │
@@ -32,9 +32,9 @@ A microservices web application where users browse PC components and assemble na
 
 ## Services
 
-| Service | Framework | Runtime | Description | README |
-|---------|-----------|---------|-------------|--------|
-| `parts-service` | ElysiaJS | Bun | PC component catalog (CRUD) | [README](parts-service/README.md) |
+| Service | Framework / Protocol | Runtime | Description | README |
+|---------|---------------------|---------|-------------|--------|
+| `parts-service` | gRPC | Bun | PC component catalog (CRUD) | [README](parts-service/README.md) |
 | `builds-service` | Hono | Bun | Named PC build assembly | [README](builds-service/README.md) |
 | `users-service` | Oak | Deno | User registration, login, JWT | [README](users-service/README.md) |
 | `api-gateway` | Bun.serve | Bun | Request routing, CORS, auth | TBD |
@@ -45,7 +45,7 @@ A microservices web application where users browse PC components and assemble na
 | Layer | Technology |
 |-------|-----------|
 | Runtimes | Bun, Deno |
-| Backend | ElysiaJS, Hono, Oak |
+| Backend | gRPC, Hono, Oak |
 | Frontend | Next.js 16, React 19, Tailwind CSS v4 |
 | Language | TypeScript (strict) |
 | Database | PostgreSQL, Drizzle ORM |

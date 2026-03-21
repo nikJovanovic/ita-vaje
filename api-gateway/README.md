@@ -24,11 +24,11 @@ src/
 
 ## Routing
 
-| Path prefix | Target |
-|-------------|--------|
-| `/api/parts/*` | `parts-service:4001` |
-| `/api/builds/*` | `builds-service:4002` |
-| `/api/users/*` | `users-service:4003` |
+| Path prefix | Target | Protocol |
+|-------------|--------|----------|
+| `/api/parts/*` | `parts-service:50051` | gRPC (client translates REST ↔ gRPC) |
+| `/api/builds/*` | `builds-service:4002` | HTTP proxy |
+| `/api/users/*` | `users-service:4003` | HTTP proxy |
 
 ## Cross-Cutting Concerns
 

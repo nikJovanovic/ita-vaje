@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package parts;
+
+service PartsService {
+  rpc ListComponents (ListComponentsRequest) returns (ListComponentsResponse);
+  rpc GetComponent (GetComponentRequest) returns (ComponentInfo);
+  rpc GetComponentsByIds (GetComponentsByIdsRequest) returns (GetComponentsByIdsResponse);
+  rpc CreateComponent (CreateComponentRequest) returns (ComponentInfo);
+  rpc UpdateComponent (UpdateComponentRequest) returns (ComponentInfo);
+  rpc DeleteComponent (DeleteComponentRequest) returns (DeleteComponentResponse);
+}
+
+// Shared
+
+message ComponentInfo {
+  string id = 1;
+  string name = 2;
+  string brand = 3;
+  string type = 4;
+  float price = 5;
+  map<string, string> specs = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+// ListComponents
+
+message ListComponentsRequest {
+  optional string type = 1;
+}
+
+message ListComponentsResponse {
+  repeated ComponentInfo components = 1;
+}
+
+// GetComponent
+
+message GetComponentRequest {
+  string id = 1;
+}
+
+// GetComponentsByIds
+
+message GetComponentsByIdsRequest {
+  repeated string ids = 1;
+}
+
+message GetComponentsByIdsResponse {
+  repeated ComponentInfo components = 1;
+}
+
+// CreateComponent
+
+message CreateComponentRequest {
+  string name = 1;
+  string brand = 2;
+  string type = 3;
+  float price = 4;
+  map<string, string> specs = 5;
+}
+
+// UpdateComponent
+
+message UpdateComponentRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string brand = 3;
+  optional string type = 4;
+  optional float price = 5;
+  map<string, string> specs = 6;
+}
+
+// DeleteComponent
+
+message DeleteComponentRequest {
+  string id = 1;
+}
+
+message DeleteComponentResponse {
+  bool success = 1;
+}

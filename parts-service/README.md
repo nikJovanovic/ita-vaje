@@ -1,16 +1,17 @@
 # Parts Service
 
-PC component catalog microservice — manages CRUD operations for PC hardware components.
+PC component catalog microservice — manages CRUD operations for PC hardware components via **gRPC**.
 
 ## Overview
 
 | | |
 |---|---|
-| **Framework** | ElysiaJS |
+| **Protocol** | gRPC |
 | **Runtime** | Bun |
 | **Database** | PostgreSQL (`catalog_db`) |
 | **ORM** | Drizzle |
-| **Port** | 4001 |
+| **gRPC Port** | 50051 |
+| **Health HTTP Port** | 4001 |
 
 ## Architecture
 
@@ -18,29 +19,37 @@ PC component catalog microservice — manages CRUD operations for PC hardware co
 src/catalog/
 ├── domain/          # Component entity, repository interface
 ├── application/     # ComponentService — business logic
-├── infrastructure/  # Drizzle schema, PostgreSQL repository, migrations, seed
-└── api/             # ElysiaJS route handlers, logger middleware
+└── infrastructure/  # Drizzle schema, PostgreSQL repository, gRPC server, migrations, seed
 ```
 
-## API Endpoints
+## gRPC API
 
-Base path: `/api/components`
+Proto definition: `proto/parts.proto`
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/components` | List all components (optional `?type=` filter) |
-| `GET` | `/api/components/:id` | Get component by ID |
-| `POST` | `/api/components` | Create a new component |
-| `PATCH` | `/api/components/:id` | Update a component |
-| `DELETE` | `/api/components/:id` | Delete a component |
+| RPC | Description |
+|-----|-------------|
+| `ListComponents` | List all components (optional `type` filter) |
+| `GetComponent` | Get component by ID |
+| `GetComponentsByIds` | Get multiple components by IDs |
+| `CreateComponent` | Create a new component |
+| `UpdateComponent` | Update a component |
+| `DeleteComponent` | Delete a component |
 
 ### Component Types
 
 `CPU`, `GPU`, `RAM`, `Storage`, `Motherboard`, `PSU`, `Case`, `Cooling`
 
-### OpenAPI / Swagger
+### gRPC Web UI (gRPCox)
 
-Available at `/swagger` when the service is running.
+A Swagger-like web UI for gRPC is available via Docker:
+
+```bash
+docker compose up grpcox     # from project root
+```
+
+Open `http://localhost:6969`, enter `parts-service:50051` (Docker) or `localhost:50051` (local), and browse services.
+
+Server reflection is enabled, so gRPCox auto-discovers all services and methods.
 
 ## Development
 
@@ -63,7 +72,7 @@ bun run db:seed      # seed ~50 real-world PC components
 bun test             # run all tests
 ```
 
-Tests cover the repository layer and all API endpoints.
+Tests cover the repository layer and all gRPC endpoints.
 
 ## Linting
 
@@ -78,10 +87,12 @@ bun run format       # biome format --write
 docker compose up parts-service   # from project root
 ```
 
-The container automatically runs migrations, seeds data, and starts the server.
+The container automatically runs migrations, seeds data, and starts the gRPC server.
 
-## gRPC
+## Environment Variables
 
-This service also exposes a gRPC interface for inter-service communication. `builds-service` uses the gRPC client to resolve component details. Proto definitions are in `proto/`.
-
-**Status:** Not yet implemented.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgres://...localhost:5432/catalog_db` | PostgreSQL connection string |
+| `GRPC_PORT` | `50051` | gRPC server port |
+| `PORT` | `4001` | HTTP health check port |

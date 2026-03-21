@@ -10,9 +10,9 @@ PC Build Planner — a school microservices project where users browse PC compon
 
 3 backend microservices (each a different framework) + API gateway + Next.js frontend. Each backend service owns its own PostgreSQL database on a shared Docker PostgreSQL server. No service may query another service's database directly.
 
-| Service | DB | Framework | Runtime | Business concept folder |
-|---------|----|-----------|---------|------------------------|
-| `parts-service` | `catalog_db` | ElysiaJS | Bun | `src/catalog/` |
+| Service | DB | Framework / Protocol | Runtime | Business concept folder |
+|---------|----|---------------------|---------|------------------------|
+| `parts-service` | `catalog_db` | gRPC (`@grpc/grpc-js`) | Bun | `src/catalog/` |
 | `builds-service` | `builds_db` | Hono | Bun | `src/build-management/` |
 | `users-service` | `users_db` | Oak | Deno | `src/identity/` |
 | `api-gateway` | — | None (plain `Bun.serve`) | Bun | — |
@@ -20,10 +20,10 @@ PC Build Planner — a school microservices project where users browse PC compon
 
 ### API Gateway
 
-Plain `Bun.serve` + native `fetch` proxy — no framework. Routes by path prefix:
-- `/api/parts/*` → `parts-service:4001`
-- `/api/builds/*` → `builds-service:4002`
-- `/api/users/*` → `users-service:4003`
+Plain `Bun.serve` — no framework. Routes by path prefix:
+- `/api/parts/*` → `parts-service:50051` (via gRPC client)
+- `/api/builds/*` → `builds-service:4002` (via HTTP proxy)
+- `/api/users/*` → `users-service:4003` (via HTTP proxy)
 
 Handles cross-cutting concerns: CORS, auth token validation.
 
@@ -33,26 +33,27 @@ Handles cross-cutting concerns: CORS, auth token validation.
 <service>/src/<business-concept>/
 ├── domain/          # Entities, interfaces — NO framework imports
 ├── application/     # Use cases — pure business logic, no HTTP/DB knowledge
-├── infrastructure/  # PostgreSQL repository implementations
-└── api/             # Route handlers (ElysiaJS / Hono / Oak) — thin adapters only
+├── infrastructure/  # PostgreSQL repository implementations, gRPC server/client
+└── api/             # Route handlers (Hono / Oak) — thin adapters only (REST services)
 ```
 
 - Dependencies flow inward: `api` → `application` → `domain` ← `infrastructure`
 
 ### Inter-Service Communication
 
-- **Mandatory**: at least one service must use **gRPC** (not REST) for inter-service calls
-- `parts-service` exposes a **gRPC interface** for internal service-to-service communication
+- `parts-service` is a **full gRPC service** — all CRUD operations are served via gRPC (no REST endpoints)
 - `builds-service` calls `parts-service` via **gRPC client** to resolve component details
-- External access (frontend → gateway → services) remains **REST/HTTP**
+- `builds-service` and `users-service` expose **REST/HTTP** endpoints
+- The API gateway will use a gRPC client for parts-service and REST for other services
 - `.proto` definitions live in `parts-service/proto/`
+- Server reflection is enabled on parts-service for tooling (gRPCox)
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Runtimes | Bun (parts, builds, gateway, frontend), Deno (users) |
-| Backend frameworks | ElysiaJS, Hono, Oak (one per service) |
+| Backend frameworks | gRPC (parts), Hono (builds), Oak (users) |
 | Frontend | Next.js 16, React 19, Tailwind CSS v4 |
 | Language | TypeScript (strict) everywhere |
 | Database | PostgreSQL (Docker), Drizzle ORM |

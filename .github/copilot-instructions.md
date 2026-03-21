@@ -25,7 +25,7 @@ ita-vaje/
 | Layer              | Technology                                          |
 | ------------------ | --------------------------------------------------- |
 | Runtimes           | Bun (parts, builds, gateway, frontend), Deno (users)|
-| Backend frameworks | ElysiaJS (parts), Hono (builds), Oak (users)        |
+| Backend frameworks | gRPC (parts), Hono (builds), Oak (users)             |
 | API Gateway        | Plain `Bun.serve` — no framework                    |
 | Frontend           | Next.js 16 (App Router), React 19, Tailwind CSS v4  |
 | Language           | TypeScript (strict) everywhere                       |
@@ -47,7 +47,7 @@ This project follows **Clean Architecture** with **Screaming Architecture** nami
 ├── domain/          # Entities, interfaces, value objects — NO framework imports
 ├── application/     # Use cases — orchestrate domain, no HTTP/DB knowledge
 ├── infrastructure/  # PostgreSQL repository implementations
-└── api/             # Route handlers (ElysiaJS / Hono / Oak) — thin adapters only
+└── api/             # Route handlers (Hono / Oak) or gRPC server — thin adapters only
 ```
 
 ### Key rules
@@ -55,9 +55,8 @@ This project follows **Clean Architecture** with **Screaming Architecture** nami
 - **Domain is pure**: no framework imports, no `pg`, no external imports in `domain/`
 - **Dependencies flow inward**: `api` → `application` → `domain` ← `infrastructure`
 - **Folder names reflect business concepts**, not technology (e.g. `catalog/`, `build-management/`, `identity/`)
-- **gRPC mandatory**: `parts-service` exposes gRPC for inter-service calls; `builds-service` calls it via gRPC client. `.proto` files live in `parts-service/proto/`. External API remains REST.
+- **gRPC**: `parts-service` is a **full gRPC service** — all CRUD operations are served via gRPC (no REST). `builds-service` calls it via gRPC client. `.proto` files live in `parts-service/proto/`. Server reflection is enabled. `builds-service` and `users-service` expose REST/HTTP.
 - **Prefer native APIs**: use runtime built-ins over external libs (e.g. Bun native JWT/hashing, Deno std library)
-- Inter-service communication: gRPC (builds→parts), REST for external access
 
 ---
 
