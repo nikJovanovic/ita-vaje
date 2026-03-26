@@ -32,6 +32,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/builds_db
       PORT: 4002
+      JWT_SECRET: ${JWT_SECRET}
       PARTS_GRPC_HOST: parts-service:50051
       PARTS_PROTO_PATH: /proto/parts.proto
     volumes:
@@ -39,6 +40,30 @@ services:
     depends_on:
       - postgres
       - parts-service
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  users-service:
+    build: ./users-service
+    restart: unless-stopped
+    ports:
+      - "4003:4003"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/users_db
+      PORT: 4003
+      JWT_SECRET: ${JWT_SECRET}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - postgres
+      - rabbitmq
 
   grpcox:
     image: gusaul/grpcox:latest

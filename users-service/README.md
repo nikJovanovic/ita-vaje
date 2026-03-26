@@ -1,16 +1,17 @@
 # Users Service
 
-Identity microservice — handles user registration, login, and JWT token issuance.
+Identity microservice — handles user registration, login, and JWT token
+issuance.
 
 ## Overview
 
-| | |
-|---|---|
-| **Framework** | Oak |
-| **Runtime** | Deno |
-| **Database** | PostgreSQL (`users_db`) |
-| **ORM** | Drizzle |
-| **Port** | 4003 |
+|               |                         |
+| ------------- | ----------------------- |
+| **Framework** | Oak                     |
+| **Runtime**   | Deno                    |
+| **Database**  | PostgreSQL (`users_db`) |
+| **ORM**       | Drizzle                 |
+| **Port**      | 4003                    |
 
 ## Architecture
 
@@ -26,11 +27,11 @@ src/identity/
 
 Base path: `/api/users`
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/users/register` | Register a new user |
-| `POST` | `/api/users/login` | Login and receive JWT |
-| `GET` | `/api/users/me` | Get current user profile (requires auth) |
+| Method | Path                  | Description                              |
+| ------ | --------------------- | ---------------------------------------- |
+| `POST` | `/api/users/register` | Register a new user                      |
+| `POST` | `/api/users/login`    | Login and receive JWT                    |
+| `GET`  | `/api/users/me`       | Get current user profile (requires auth) |
 
 ### OpenAPI / Swagger
 

@@ -6,11 +6,11 @@ import {
   expect,
   test,
 } from "bun:test";
+import { resolve } from "node:path";
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { resolve } from "node:path";
 import postgres from "postgres";
 import { ComponentService } from "../src/catalog/application/component-service";
 import { DrizzleComponentRepository } from "../src/catalog/infrastructure/drizzle-component-repository";
@@ -113,8 +113,8 @@ afterAll(async () => {
   await pgClient.end();
 });
 
-// biome-ignore lint/suspicious/noExplicitAny: gRPC dynamic client methods
 function rpc<T>(
+  // biome-ignore lint/suspicious/noExplicitAny: gRPC dynamic client
   method: (...args: any[]) => void,
   request: unknown,
 ): Promise<T> {

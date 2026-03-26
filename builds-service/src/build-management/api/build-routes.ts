@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
 import type { BuildService } from "../application/build-service";
+import { authMiddleware } from "./auth-middleware";
 
 const ComponentInfoSchema = v.object({
   id: v.string(),
@@ -28,12 +29,13 @@ const BuildWithComponentsSchema = v.object({
 
 const CreateBuildSchema = v.object({
   name: v.pipe(v.string(), v.minLength(1)),
-  userId: v.pipe(v.string(), v.minLength(1)),
   componentIds: v.array(v.string()),
 });
 
+type AuthEnv = { Variables: { userId: string; email: string } };
+
 export const buildRoutes = (service: BuildService) => {
-  const app = new Hono();
+  const app = new Hono<AuthEnv>();
 
   app.get(
     "/",
@@ -115,10 +117,12 @@ export const buildRoutes = (service: BuildService) => {
         },
       },
     }),
+    authMiddleware,
     validator("json", CreateBuildSchema),
     async (c) => {
       const body = c.req.valid("json");
-      const build = await service.create(body);
+      const userId = c.get("userId");
+      const build = await service.create({ ...body, userId });
       return c.json(build, 201);
     },
   );
@@ -140,6 +144,7 @@ export const buildRoutes = (service: BuildService) => {
         },
       },
     }),
+    authMiddleware,
     async (c) => {
       const deleted = await service.delete(c.req.param("id"));
       if (!deleted) {

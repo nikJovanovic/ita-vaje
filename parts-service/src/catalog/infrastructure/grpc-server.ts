@@ -1,7 +1,7 @@
+import { resolve } from "node:path";
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
 import { ReflectionService } from "@grpc/reflection";
-import { resolve } from "node:path";
 import type { ComponentService } from "../application/component-service";
 import type {
   ComponentType,

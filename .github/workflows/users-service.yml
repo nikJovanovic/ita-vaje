@@ -1,0 +1,55 @@
+name: Users Service CI
+
+on:
+  push:
+    paths:
+      - "users-service/**"
+      - ".github/workflows/users-service.yml"
+  pull_request:
+    paths:
+      - "users-service/**"
+      - ".github/workflows/users-service.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: users_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: users-service
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - run: deno lint
+      - run: deno fmt --check
+
+      - name: Run migrations
+        run: deno task db:migrate
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/users_db
+
+      - name: Run tests
+        run: deno task test
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/users_db
+          JWT_SECRET: test-secret

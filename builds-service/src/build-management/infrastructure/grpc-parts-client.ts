@@ -1,6 +1,6 @@
+import { resolve } from "node:path";
 import * as grpc from "@grpc/grpc-js";
 import * as protoLoader from "@grpc/proto-loader";
-import { resolve } from "node:path";
 import type { ComponentInfo } from "../domain/build";
 import type { PartsClient } from "../domain/parts-client";
 
@@ -41,7 +41,7 @@ export class GrpcPartsClient implements PartsClient {
     this.client = new PartsServiceClient(
       host,
       grpc.credentials.createInsecure(),
-    ) as typeof this.client;
+    ) as unknown as typeof this.client;
   }
 
   getComponentsByIds(ids: string[]): Promise<ComponentInfo[]> {
