@@ -18,7 +18,7 @@ import * as schema from "../src/build-management/infrastructure/schema";
 const encoder = new TextEncoder();
 
 async function createTestJwt(sub: string, email: string): Promise<string> {
-  const secret = process.env.JWT_SECRET ?? "dev-secret-change-me";
+  const secret = process.env.JWT_SECRET ?? "super-secret-dev-key";
   const key = await crypto.subtle.importKey(
     "raw",
     encoder.encode(secret),
