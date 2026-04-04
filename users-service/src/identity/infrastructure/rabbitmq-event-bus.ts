@@ -13,7 +13,34 @@ export class RabbitMqEventBus implements EventBus {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const connection = await amqplib.connect(url);
+
+        connection.on("error", (err: Error) => {
+          console.error(
+            `[${new Date().toISOString()}] RabbitMQ connection error:`,
+            err.message,
+          );
+          this.channel = null;
+        });
+        connection.on("close", () => {
+          console.warn(
+            `[${new Date().toISOString()}] RabbitMQ connection closed`,
+          );
+          this.channel = null;
+        });
+
         this.channel = await connection.createChannel();
+
+        this.channel.on("error", (err: Error) => {
+          console.error(
+            `[${new Date().toISOString()}] RabbitMQ channel error:`,
+            err.message,
+          );
+          this.channel = null;
+        });
+        this.channel.on("close", () => {
+          this.channel = null;
+        });
+
         await this.channel.assertExchange(this.exchange, "topic", {
           durable: true,
         });
@@ -44,13 +71,21 @@ export class RabbitMqEventBus implements EventBus {
       );
       return Promise.resolve();
     }
-    this.channel.publish(
-      this.exchange,
-      event,
-      Buffer.from(JSON.stringify(payload)),
-      { persistent: true },
-    );
-    console.log(`[${new Date().toISOString()}] Published event: ${event}`);
+    try {
+      this.channel.publish(
+        this.exchange,
+        event,
+        Buffer.from(JSON.stringify(payload)),
+        { persistent: true },
+      );
+      console.log(`[${new Date().toISOString()}] Published event: ${event}`);
+    } catch (err) {
+      console.error(
+        `[${new Date().toISOString()}] Failed to publish event ${event}:`,
+        err instanceof Error ? err.message : err,
+      );
+      this.channel = null;
+    }
     return Promise.resolve();
   }
 }
