@@ -116,5 +116,67 @@ services:
       - builds-service
       - users-service
 
+  auth-mfe:
+    build: ./auth-mfe
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_WEB_BFF_URL: http://localhost:4004
+      WEB_BFF_URL: http://web-bff:4004
+    depends_on:
+      - web-bff
+
+  catalog-mfe:
+    build: ./catalog-mfe
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_WEB_BFF_URL: http://localhost:4004
+      WEB_BFF_URL: http://web-bff:4004
+    depends_on:
+      - web-bff
+
+  builds-mfe:
+    build: ./builds-mfe
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_WEB_BFF_URL: http://localhost:4004
+      WEB_BFF_URL: http://web-bff:4004
+    depends_on:
+      - web-bff
+
+  shell:
+    build:
+      context: ./shell
+      args:
+        CATALOG_URL: http://catalog-mfe:3001
+        BUILDS_URL: http://builds-mfe:3002
+        AUTH_URL: http://auth-mfe:3003
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      CATALOG_URL: http://catalog-mfe:3001
+      BUILDS_URL: http://builds-mfe:3002
+      AUTH_URL: http://auth-mfe:3003
+      NEXT_PUBLIC_WEB_BFF_URL: http://localhost:4004
+      WEB_BFF_URL: http://web-bff:4004
+    depends_on:
+      - catalog-mfe
+      - builds-mfe
+      - auth-mfe
+
 volumes:
   pgdata:

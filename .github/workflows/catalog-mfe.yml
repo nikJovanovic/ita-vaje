@@ -1,0 +1,32 @@
+name: Catalog MFE CI
+
+on:
+  push:
+    paths:
+      - "catalog-mfe/**"
+      - ".github/workflows/catalog-mfe.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: catalog-mfe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run lint
+
+      - name: Build
+        run: bun run build
+
+      - name: Test
+        run: bun test

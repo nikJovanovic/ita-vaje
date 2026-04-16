@@ -4,44 +4,69 @@ A microservices web application where users browse PC components and assemble na
 
 ## Architecture
 
-Backend-for-Frontend (BFF) pattern: a dedicated gateway per client type, each in a different framework, returning payloads shaped for that client.
+Three stacked patterns:
+
+1. **Microservices** — 3 backend services, each own DB, each different framework.
+2. **Backend-for-Frontend (BFF)** — `web-bff` (rich) and `mobile-bff` (slim) compose downstream calls into client-shaped payloads.
+3. **Micro-Frontends (Next.js Multi-Zones)** — one shell + 3 feature zones stitched together by path rewrites. Each zone is its own Next.js app, own Dockerfile, own CI pipeline.
 
 ```
-   ┌──────────────┐        ┌──────────────┐
-   │ Next.js web  │        │ Mobile app   │
-   └──────┬───────┘        └──────┬───────┘
-          │ HTTP (rich)           │ HTTP (slim)
-   ┌──────▼───────┐        ┌──────▼───────┐
-   │   web-bff    │        │  mobile-bff  │
-   │ Bun + Hono   │        │ Bun + Elysia │
-   └──┬────┬────┬─┘        └──┬────┬────┬─┘
-      │    │    │             │    │    │
-      │    │    └───┬─────────┘    │    │
-      │    └────────┼───┬──────────┘    │
-      └─────────────┼───┼───┬───────────┘
-                    │   │   │
-          gRPC      │   │   │ REST
-    ┌───────────────▼┐ ┌▼───▼───────────┐ ┌─────────────────┐
-    │ parts-service  │ │ builds-service │ │  users-service  │
-    │  (gRPC / Bun)  │ │ (Hono / Bun)   │ │  (Oak / Deno)   │
-    └───────┬────────┘ └───────┬────────┘ └────────┬────────┘
-            │                  │                   │
-    ┌───────▼────────┐ ┌───────▼────────┐ ┌────────▼────────┐
-    │  catalog_db    │ │   builds_db    │ │    users_db     │
-    │  (PostgreSQL)  │ │  (PostgreSQL)  │ │  (PostgreSQL)   │
-    └────────────────┘ └────────────────┘ └─────────────────┘
+Browser
+  │
+  ▼ http://localhost:3000
+┌──────────────────────────────────────────────┐
+│  shell (Next.js, :3000) — main zone          │
+│  rewrites /catalog, /builds, /auth to zones  │
+└──────┬─────────────┬──────────────┬──────────┘
+       │             │              │
+       ▼             ▼              ▼
+┌────────────┐ ┌────────────┐ ┌────────────┐
+│ catalog-   │ │ builds-mfe │ │ auth-mfe   │
+│ mfe :3001  │ │ :3002      │ │ :3003      │
+└─────┬──────┘ └─────┬──────┘ └─────┬──────┘
+      │              │              │
+      └──────────────┼──────────────┘
+                     ▼ HTTP
+              ┌──────────────┐
+              │   web-bff    │  (Hono, :4004)
+              │ rich payloads│
+              └──┬────┬────┬─┘
+                 │    │    │
+       gRPC ─────┘    │    └─── REST ───┐
+                      ▼                 ▼
+         ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
+         │ parts-service  │ │ builds-service │ │ users-service  │
+         │   (gRPC/Bun)   │ │  (Hono/Bun)    │ │  (Oak/Deno)    │
+         └───────┬────────┘ └───────┬────────┘ └────────┬───────┘
+         ┌──────▼─────┐     ┌──────▼─────┐      ┌──────▼─────┐
+         │ catalog_db │     │ builds_db  │      │ users_db   │
+         └────────────┘     └────────────┘      └────────────┘
 ```
+
+`mobile-bff` (Elysia, :4005) sits alongside `web-bff` for a hypothetical mobile client with slim responses — not wired into the micro-frontend zones.
 
 ## Services
+
+### Backend
 
 | Service | Framework / Protocol | Runtime | Description | README |
 |---------|---------------------|---------|-------------|--------|
 | `parts-service` | gRPC | Bun | PC component catalog (CRUD) | [README](parts-service/README.md) |
 | `builds-service` | Hono | Bun | Named PC build assembly | [README](builds-service/README.md) |
 | `users-service` | Oak | Deno | User registration, login, JWT | [README](users-service/README.md) |
-| `web-bff` | Hono | Bun | BFF for the Next.js web client — **rich payloads** (full specs, breakdowns, thumbnails) | [README](web-bff/README.md) |
-| `mobile-bff` | Elysia | Bun | BFF for mobile clients — **slim payloads** (minimal fields, flat arrays) | [README](mobile-bff/README.md) |
-| `frontend` | Next.js 16 | Bun | Web interface | TBD |
+| `web-bff` | Hono | Bun | BFF — rich payloads (full specs, breakdowns, thumbnails) | [README](web-bff/README.md) |
+| `mobile-bff` | Elysia | Bun | BFF — slim payloads (minimal fields, flat arrays) | [README](mobile-bff/README.md) |
+
+### Micro-frontends (Next.js Multi-Zones)
+
+| Zone | Folder | Port | `assetPrefix` | Owns paths |
+|------|--------|------|---------------|------------|
+| **shell** | [shell/](shell/) | 3000 | — | `/` (landing, rewrites) |
+| **catalog-mfe** | [catalog-mfe/](catalog-mfe/) | 3001 | `/catalog-static` | `/catalog`, `/catalog/:id` |
+| **builds-mfe** | [builds-mfe/](builds-mfe/) | 3002 | `/builds-static` | `/builds`, `/builds/new`, `/builds/:id` |
+| **auth-mfe** | [auth-mfe/](auth-mfe/) | 3003 | `/auth-static` | `/auth/login`, `/auth/register`, `/auth/me` |
+
+All zones share the [shadcn/ui](https://ui.shadcn.com) preset `b1t3ILnrM` so they look like one app despite being deployed independently. Cross-zone auth = JWT in a shared-origin cookie.
 
 ## Tech Stack
 
@@ -74,8 +99,11 @@ ita-vaje/
 ├── users-service/      # Authentication and user profiles (Oak/Deno)
 ├── web-bff/            # BFF for web (Hono) — rich responses
 ├── mobile-bff/         # BFF for mobile (Elysia) — slim responses
-├── frontend/           # Next.js web application
-├── docker-compose.yml  # PostgreSQL + all services
+├── shell/              # MFE shell (Next.js) — rewrites to zones
+├── catalog-mfe/        # MFE zone: browse components
+├── builds-mfe/         # MFE zone: manage builds
+├── auth-mfe/           # MFE zone: register / login / profile
+├── docker-compose.yml  # PostgreSQL + all services + all MFE zones
 └── init-databases.sql  # Creates all 3 databases on first run
 ```
 
