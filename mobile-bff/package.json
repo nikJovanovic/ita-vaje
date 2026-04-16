@@ -1,0 +1,22 @@
+{
+  "name": "mobile-bff",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "lint": "biome lint src",
+    "format": "biome check --write"
+  },
+  "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
+    "@elysiajs/openapi": "^1.4.0",
+    "@grpc/grpc-js": "^1.14.3",
+    "@grpc/proto-loader": "^0.8.0",
+    "elysia": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@biomejs/biome": "^2.2.0"
+  }
+}

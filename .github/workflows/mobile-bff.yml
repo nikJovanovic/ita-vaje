@@ -1,0 +1,31 @@
+name: Mobile BFF CI
+
+on:
+  push:
+    paths:
+      - "mobile-bff/**"
+      - ".github/workflows/mobile-bff.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: mobile-bff
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run lint
+
+      - name: Run tests
+        run: bun test
+        env:
+          JWT_SECRET: test-secret

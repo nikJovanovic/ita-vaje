@@ -8,24 +8,29 @@ PC Build Planner — a school microservices project where users browse PC compon
 
 ## Architecture
 
-3 backend microservices (each a different framework) + API gateway + Next.js frontend. Each backend service owns its own PostgreSQL database on a shared Docker PostgreSQL server. No service may query another service's database directly.
+3 backend microservices (each a different framework) + 2 BFFs (one per client type, different frameworks) + Next.js frontend. Each backend service owns its own PostgreSQL database on a shared Docker PostgreSQL server. No service may query another service's database directly. **BFFs have no database** — they compose downstream service responses.
 
 | Service | DB | Framework / Protocol | Runtime | Business concept folder |
 |---------|----|---------------------|---------|------------------------|
 | `parts-service` | `catalog_db` | gRPC (`@grpc/grpc-js`) | Bun | `src/catalog/` |
 | `builds-service` | `builds_db` | Hono | Bun | `src/build-management/` |
 | `users-service` | `users_db` | Oak | Deno | `src/identity/` |
-| `api-gateway` | — | None (plain `Bun.serve`) | Bun | — |
+| `web-bff` | — | Hono + `@hono/swagger-ui` | Bun | `src/` (routes, clients, middleware) |
+| `mobile-bff` | — | Elysia + `@elysiajs/openapi` | Bun | `src/` (routes, clients, middleware) |
 | `frontend` | — | Next.js 16, React 19, Tailwind v4 | Bun | `src/app/` |
 
-### API Gateway
+### BFFs (Backends-for-Frontends)
 
-Plain `Bun.serve` — no framework. Routes by path prefix:
-- `/api/parts/*` → `parts-service:50051` (via gRPC client)
-- `/api/builds/*` → `builds-service:4002` (via HTTP proxy)
-- `/api/users/*` → `users-service:4003` (via HTTP proxy)
+Two gateways in **different frameworks**, same operations, different response shapes:
+- **web-bff** (`:4004`, Bun + Hono) — rich composed payloads for the Next.js client: full specs, related-component fan-out, category breakdowns, thumbnail arrays.
+- **mobile-bff** (`:4005`, Bun + Elysia) — slim bandwidth-friendly payloads: minimal fields, flat arrays, no timestamps.
 
-Handles cross-cutting concerns: CORS, auth token validation.
+Both BFFs:
+- call `parts-service` via gRPC (proto mounted at `/proto/parts.proto`)
+- call `builds-service` and `users-service` via REST (`fetch`)
+- validate JWT at the edge and forward the `Authorization` header downstream
+- expose Swagger UI at `/swagger` and the OpenAPI spec at `/openapi`
+- have no database, no migrations, no seeds
 
 ### Clean Architecture (per backend service)
 
@@ -52,8 +57,8 @@ Handles cross-cutting concerns: CORS, auth token validation.
 
 | Layer | Technology |
 |-------|-----------|
-| Runtimes | Bun (parts, builds, gateway, frontend), Deno (users) |
-| Backend frameworks | gRPC (parts), Hono (builds), Oak (users) |
+| Runtimes | Bun (parts, builds, web-bff, mobile-bff, frontend), Deno (users) |
+| Backend frameworks | gRPC (parts), Hono (builds, web-bff), Oak (users), Elysia (mobile-bff) |
 | Frontend | Next.js 16, React 19, Tailwind CSS v4 |
 | Language | TypeScript (strict) everywhere |
 | Database | PostgreSQL (Docker), Drizzle ORM |
