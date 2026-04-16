@@ -34,7 +34,9 @@ describe("RegisterPage", () => {
       target: { value: "abc" },
     });
     // Short password enforced client-side (before fetch)
-    const form = screen.getByRole("button", { name: /sign up/i }).closest("form");
+    const form = screen
+      .getByRole("button", { name: /sign up/i })
+      .closest("form");
     expect(form).toBeDefined();
     // minLength=6 on the input also blocks browser submission; form submit won't proceed
   });

@@ -16,9 +16,7 @@ function makeToken(
     .replace(/\//g, "_")
     .replace(/=+$/, "");
   const now = Math.floor(Date.now() / 1000);
-  const body = btoa(
-    JSON.stringify({ iat: now, exp: now + 3600, ...payload }),
-  )
+  const body = btoa(JSON.stringify({ iat: now, exp: now + 3600, ...payload }))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");

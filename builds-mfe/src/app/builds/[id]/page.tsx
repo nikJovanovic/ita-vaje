@@ -68,9 +68,7 @@ export default async function BuildDetailPage({
       <Card>
         <CardHeader>
           <CardTitle>Price breakdown</CardTitle>
-          <CardDescription>
-            Totals by component category.
-          </CardDescription>
+          <CardDescription>Totals by component category.</CardDescription>
         </CardHeader>
         <CardContent>
           <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">

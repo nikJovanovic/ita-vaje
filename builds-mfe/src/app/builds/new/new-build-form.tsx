@@ -111,9 +111,11 @@ export function NewBuildForm({ components }: { components: Component[] }) {
               {list.map((c) => {
                 const checked = selected.has(c.id);
                 return (
-                  <label
+                  <button
                     key={c.id}
-                    className={`flex cursor-pointer items-center justify-between gap-3 rounded border p-3 text-sm ${
+                    type="button"
+                    onClick={() => toggle(c.id)}
+                    className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded border p-3 text-left text-sm ${
                       checked ? "border-primary bg-primary/5" : ""
                     }`}
                   >
@@ -121,6 +123,7 @@ export function NewBuildForm({ components }: { components: Component[] }) {
                       <Checkbox
                         checked={checked}
                         onCheckedChange={() => toggle(c.id)}
+                        tabIndex={-1}
                       />
                       <span>
                         <span className="font-medium">{c.name}</span>
@@ -132,7 +135,7 @@ export function NewBuildForm({ components }: { components: Component[] }) {
                     <span className="font-semibold">
                       {c.price.toFixed(2)} €
                     </span>
-                  </label>
+                  </button>
                 );
               })}
             </div>
