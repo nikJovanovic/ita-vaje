@@ -78,5 +78,43 @@ services:
     ports:
       - "6969:6969"
 
+  web-bff:
+    build: ./web-bff
+    restart: unless-stopped
+    ports:
+      - "4004:4004"
+    environment:
+      PORT: 4004
+      JWT_SECRET: ${JWT_SECRET}
+      PARTS_GRPC_HOST: parts-service:50051
+      PARTS_PROTO_PATH: /proto/parts.proto
+      BUILDS_SERVICE_URL: http://builds-service:4002
+      USERS_SERVICE_URL: http://users-service:4003
+    volumes:
+      - ./parts-service/proto:/proto:ro
+    depends_on:
+      - parts-service
+      - builds-service
+      - users-service
+
+  mobile-bff:
+    build: ./mobile-bff
+    restart: unless-stopped
+    ports:
+      - "4005:4005"
+    environment:
+      PORT: 4005
+      JWT_SECRET: ${JWT_SECRET}
+      PARTS_GRPC_HOST: parts-service:50051
+      PARTS_PROTO_PATH: /proto/parts.proto
+      BUILDS_SERVICE_URL: http://builds-service:4002
+      USERS_SERVICE_URL: http://users-service:4003
+    volumes:
+      - ./parts-service/proto:/proto:ro
+    depends_on:
+      - parts-service
+      - builds-service
+      - users-service
+
 volumes:
   pgdata:
