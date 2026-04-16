@@ -8,7 +8,9 @@ PC Build Planner — a school microservices project where users browse PC compon
 
 ## Architecture
 
-3 backend microservices (each a different framework) + 2 BFFs (one per client type, different frameworks) + Next.js frontend. Each backend service owns its own PostgreSQL database on a shared Docker PostgreSQL server. No service may query another service's database directly. **BFFs have no database** — they compose downstream service responses.
+3 backend microservices (each a different framework) + 2 BFFs (one per client type) + 4-zone Next.js micro-frontend. Each backend service owns its own PostgreSQL database. No service may query another service's database directly. **BFFs and MFEs have no database** — they compose upstream calls.
+
+### Backend
 
 | Service | DB | Framework / Protocol | Runtime | Business concept folder |
 |---------|----|---------------------|---------|------------------------|
@@ -17,7 +19,17 @@ PC Build Planner — a school microservices project where users browse PC compon
 | `users-service` | `users_db` | Oak | Deno | `src/identity/` |
 | `web-bff` | — | Hono + `@hono/swagger-ui` | Bun | `src/` (routes, clients, middleware) |
 | `mobile-bff` | — | Elysia + `@elysiajs/openapi` | Bun | `src/` (routes, clients, middleware) |
-| `frontend` | — | Next.js 16, React 19, Tailwind v4 | Bun | `src/app/` |
+
+### Micro-frontends (Next.js Multi-Zones)
+
+| Zone | Port | `assetPrefix` | Owns |
+|------|------|---------------|------|
+| `shell` | 3000 | — (main zone) | landing + rewrites |
+| `catalog-mfe` | 3001 | `/catalog-static` | `/catalog/*` |
+| `builds-mfe` | 3002 | `/builds-static` | `/builds/*` |
+| `auth-mfe` | 3003 | `/auth-static` | `/auth/*` |
+
+All zones are independent Next.js 16 apps. Each uses shadcn/ui with the shared preset `b1t3ILnrM` for consistent design tokens. Cross-zone navigation uses plain `<a>` tags (never `next/link`). Shared auth = `jwt` cookie on the shared origin; each zone has both server-side (`src/lib/auth.ts` via `cookies()`) and client-side (`src/lib/auth-client.ts` via `document.cookie`) helpers. Every MFE fetches from `web-bff` — the shared `src/lib/bff.ts` picks between `NEXT_PUBLIC_WEB_BFF_URL` (browser) and `WEB_BFF_URL` (server-component).
 
 ### BFFs (Backends-for-Frontends)
 
@@ -57,9 +69,9 @@ Both BFFs:
 
 | Layer | Technology |
 |-------|-----------|
-| Runtimes | Bun (parts, builds, web-bff, mobile-bff, frontend), Deno (users) |
+| Runtimes | Bun (parts, builds, web-bff, mobile-bff, shell, catalog-mfe, builds-mfe, auth-mfe), Deno (users) |
 | Backend frameworks | gRPC (parts), Hono (builds, web-bff), Oak (users), Elysia (mobile-bff) |
-| Frontend | Next.js 16, React 19, Tailwind CSS v4 |
+| Frontend | Next.js 16 Multi-Zones, React 19, Tailwind v4, shadcn/ui (preset `b1t3ILnrM`) |
 | Language | TypeScript (strict) everywhere |
 | Database | PostgreSQL (Docker), Drizzle ORM |
 | Linting/formatting | Biome 2.x |

@@ -1,0 +1,32 @@
+name: Auth MFE CI
+
+on:
+  push:
+    paths:
+      - "auth-mfe/**"
+      - ".github/workflows/auth-mfe.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: auth-mfe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run lint
+
+      - name: Build
+        run: bun run build
+
+      - name: Test
+        run: bun test
