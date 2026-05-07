@@ -3,8 +3,8 @@ import type {
   BuildsClient,
   ComponentInfo,
   PartsClient,
+  UsersClient,
 } from "../clients/types";
-import type { HttpUsersClient } from "../clients/users-client";
 import { authPlugin, requireAuth } from "../middleware/auth";
 
 const SlimSummarySchema = t.Object({
@@ -16,7 +16,7 @@ const SlimSummarySchema = t.Object({
 const ErrorSchema = t.Object({ error: t.String() });
 
 export const meRoutes = (
-  users: HttpUsersClient,
+  users: UsersClient,
   builds: BuildsClient,
   parts: PartsClient
 ) =>

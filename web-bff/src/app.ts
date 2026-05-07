@@ -2,8 +2,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { openAPIRouteHandler } from "hono-openapi";
-import type { BuildsClient, PartsClient } from "./clients/types";
-import type { HttpUsersClient } from "./clients/users-client";
+import type { BuildsClient, PartsClient, UsersClient } from "./clients/types";
 import { logger } from "./middleware/logger";
 import { authRoutes } from "./routes/auth";
 import { buildRoutes } from "./routes/builds";
@@ -13,7 +12,7 @@ import { meRoutes } from "./routes/me";
 export interface AppDeps {
   parts: PartsClient;
   builds: BuildsClient;
-  users: HttpUsersClient;
+  users: UsersClient;
 }
 
 export const createApp = (deps: AppDeps) => {

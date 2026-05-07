@@ -1,8 +1,7 @@
 import { cors } from "@elysiajs/cors";
 import { openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
-import type { BuildsClient, PartsClient } from "./clients/types";
-import type { HttpUsersClient } from "./clients/users-client";
+import type { BuildsClient, PartsClient, UsersClient } from "./clients/types";
 import { authRoutes } from "./routes/auth";
 import { buildsRoutes } from "./routes/builds";
 import { catalogRoutes } from "./routes/catalog";
@@ -11,7 +10,7 @@ import { meRoutes } from "./routes/me";
 export interface AppDeps {
   parts: PartsClient;
   builds: BuildsClient;
-  users: HttpUsersClient;
+  users: UsersClient;
 }
 
 export const createApp = (deps: AppDeps) =>

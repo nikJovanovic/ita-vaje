@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
-import { HttpError, type HttpUsersClient } from "../clients/users-client";
+import type { UsersClient } from "../clients/types";
+import { HttpError } from "../clients/users-client";
 
 const SlimRegisterResponse = t.Object({
   token: t.String(),
@@ -26,7 +27,7 @@ function mapError(err: unknown, set: { status?: number | string }) {
   return { error: "Internal server error" };
 }
 
-export const authRoutes = (users: HttpUsersClient) =>
+export const authRoutes = (users: UsersClient) =>
   new Elysia({ prefix: "/api/auth" })
     .post(
       "/register",

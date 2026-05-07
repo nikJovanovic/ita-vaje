@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
-import { HttpError, type HttpUsersClient } from "../clients/users-client";
+import type { UsersClient } from "../clients/types";
+import { HttpError } from "../clients/users-client";
 
 const UserProfileSchema = v.object({
   id: v.string(),
@@ -44,7 +45,7 @@ function forwardError(err: unknown) {
   return { status: 500 as const, body: { error: "Internal server error" } };
 }
 
-export const authRoutes = (users: HttpUsersClient) => {
+export const authRoutes = (users: UsersClient) => {
   const app = new Hono();
 
   app.post(

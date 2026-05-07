@@ -5,8 +5,8 @@ import type {
   BuildsClient,
   ComponentInfo,
   PartsClient,
+  UsersClient,
 } from "../clients/types";
-import type { HttpUsersClient } from "../clients/users-client";
 import { type AuthEnv, authMiddleware } from "../middleware/auth";
 
 const MeSchema = v.object({
@@ -33,7 +33,7 @@ const MeSchema = v.object({
 });
 
 export const meRoutes = (
-  users: HttpUsersClient,
+  users: UsersClient,
   builds: BuildsClient,
   parts: PartsClient
 ) => {
